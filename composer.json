@@ -1,0 +1,20 @@
+{
+    "name": "alejodevop/yowl-orm",
+    "type": "library",
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Alejodevop\\YowlOrm\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Jorge Alejandro Quiroz Serna",
+            "email": "alejandro.devop@gmail.com"
+        }
+    ],
+    "require": {}
+}

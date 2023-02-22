@@ -1,0 +1,7 @@
+.idea/
+/vendor/
+.phpunit.result.cache
+.phpunit.cache
+phpunit.xml.bak
+composer-dev.json
+repositories.json
