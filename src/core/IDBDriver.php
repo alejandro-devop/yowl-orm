@@ -13,9 +13,10 @@ interface IDBDriver {
      * Must be implemented to describe a table
      *
      * @param string $tableName
+     * @param bool $asArray
      * @return array
      */
-    public function describe(string $tableName): array;
+    public function describe(string $tableName, bool $asArray): array;
     /**
      * Must be implemented to executed queries which returns data.
      *
@@ -70,4 +71,8 @@ interface IDBDriver {
      * @return boolean
      */
     public function delete(): bool;
+
+    public function getTables(): mixed;
+
+    public function lastInsertId(): mixed;
 }

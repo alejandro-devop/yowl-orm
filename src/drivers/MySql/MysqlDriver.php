@@ -21,16 +21,24 @@ class MysqlDriver extends DBDriver {
      * Implementation of a describe query in mysql.
      *
      * @param string $tableName
+     * @param bool $asArray
      * @return array
      */
-    public function describe(string $tableName): array {
+    public function describe(string $tableName, bool $asArray = false): array {
         $query = "DESCRIBE {$tableName}";
         $result = $this->query($query);
         $fields = [];
         foreach($result AS $fieldInfo){
-            $fields[] = $this->createField($fieldInfo);
+            $fields[] = $this->createField($fieldInfo, $asArray);
         }
         return $fields;
+    }
+
+    public function getTables(): mixed {
+        $dbName = $this->connector->getDatabaseName();
+        $query = "SELECT table_name AS `table_name` FROM information_schema.tables t WHERE t.table_schema = '{$dbName}'";
+        $result = $this->query($query);
+        return $result;
     }
 
     /**
@@ -62,19 +70,27 @@ class MysqlDriver extends DBDriver {
      * Creates a field used for dedescribe function
      *
      * @param array $fieldInfo
-     * @return DBField
+     * @param bool $asArray
+     * @return DBField|array
      */
-    public function createField(array $fieldInfo): DBField {
+    public function createField(array $fieldInfo, bool $asArray = false): DBField|array {
         preg_match('#\((.*?)\)#', $fieldInfo['Type'], $match);
-        $length = $match[1] ?? 0;        
-        return (new DBField())
-            ->setName($fieldInfo['Field'])
-            ->setType($fieldInfo['Type'])
-            ->setLength($length)
-            ->isNullable($fieldInfo['Null'] === 'YES')
-            ->isPrimary($fieldInfo['Key'] === 'PRI')
-            ->setDefault($fieldInfo['Default'])
-            ->setExtra($fieldInfo['Extra']);
+        $length = $match[1] ?? 0;
+        $type = isset($match[0]) ? str_replace($match[0], '', $fieldInfo['Type']) : $fieldInfo['Type'];
+
+        $field = (new DBField())
+        ->setName($fieldInfo['Field'])
+        ->setType($type)
+        ->setLength($length)
+        ->isNullable($fieldInfo['Null'] === 'YES')
+        ->isPrimary($fieldInfo['Key'] === 'PRI')
+        ->setDefault($fieldInfo['Default'])
+        ->setExtra($fieldInfo['Extra']);
+
+        if ($asArray) {
+            return $field->asArray();
+        }
+        return $field;
     }
 
     /**
@@ -111,6 +127,7 @@ class MysqlDriver extends DBDriver {
 	public function select(): mixed {
         $this->beforeQuery();
         $queryToBeExecuted = $this->currentQuery->getSelectQuery();
+        echo "query: " . $queryToBeExecuted . "<br>";
         $result = $this->query($queryToBeExecuted);
         return $result;
 	}
@@ -133,4 +150,8 @@ class MysqlDriver extends DBDriver {
         $queryToExecute = $this->currentQuery->getDeleteQuery();
         return $this->execQuery($queryToExecute);
 	}
+
+    public function lastInsertId(): mixed {
+        return $this->connector->lastInsertId();
+    }
 }

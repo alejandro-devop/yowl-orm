@@ -66,7 +66,7 @@ class MysqlConnector extends DBConnector {
      *
      * @return mixed
      */
-    public function lastInsertId() {
+    public function lastInsertId(): mixed {
         return $this->_connection->lastInsertId();
     }
 }

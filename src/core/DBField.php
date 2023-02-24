@@ -101,6 +101,18 @@ class DBField {
         return $this->maxLength;
     }
 
+    public function asArray() {
+        return [
+            'name' => $this->name,
+            'type' => $this->type,
+            'length' => $this->maxLength,
+            'isNull' => $this->isNullable,
+            'isPrimary' => $this->isPrimary,
+            'default' => $this->default ?? '',
+            'extra' => $this->extra,
+        ];
+    }
+
     public function __debugInfo() {
         return [
             'name' => $this->name,

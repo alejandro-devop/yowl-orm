@@ -106,7 +106,7 @@ abstract class DBConnector {
      *
      * @return mixed
      */
-    public abstract function lastInsertId();
+    public abstract function lastInsertId(): mixed;
     /**
      * Must be implemented to return the affected rows count.
      *
@@ -114,5 +114,9 @@ abstract class DBConnector {
      */
     public function affectedRows() {
         return $this->rowCount;
+    }
+
+    public function getDatabaseName() {
+        return $this->_database;
     }
 }

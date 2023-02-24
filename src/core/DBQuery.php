@@ -10,6 +10,7 @@ namespace Alejodevop\YowlOrm\Core;
  */
 abstract class DBQuery {
     const COND_EQUALITY = 'equals';
+    const COND_NON_EQUALITY = 'not-equals';
     const COND_LIKE = 'like';
     const COND_NOT_LIKE = 'not-like';
     const COND_IN = 'in';
@@ -25,6 +26,7 @@ abstract class DBQuery {
     const LIKE_ANY_WHERE = 'all';
     const LIKE_BEGIN = 'begin';
     const LIKE_END = 'end';
+    protected $aliasesMap = [];
     /**
      * The separator which will be used for the next condition.
      *
@@ -49,6 +51,7 @@ abstract class DBQuery {
      * @var array
      */
     protected array $joins = [];
+    protected array $joinColumns = [];
     /**
      * Conditions to be used for the current query.
      */
@@ -76,9 +79,9 @@ abstract class DBQuery {
     /**
      * If the current condition has order.
      *
-     * @var string
+     * @var array
      */
-    protected string $order;
+    protected array $order = [];
     /**
      * Table to be used for the next query.
      *
@@ -190,6 +193,12 @@ abstract class DBQuery {
      */
     public abstract function resolveLikeCondition(array $condition, bool $not = false): string;
 
+    public abstract function resolveOrdering(): string|null;
+
+    public abstract function resolveLimit(): string|null;
+
+    public abstract function resolveJoins():string|null;
+
     protected function addConnector() {
         if(count($this->conditions) > 0) {
             $this->conditions[] = ['type' => 'connector', 'connector' => $this->connector];
@@ -230,6 +239,53 @@ abstract class DBQuery {
             'operator' => self::COND_EQUALITY
         ]);
     }
+
+    /**
+     * Add a not equals condition to the stack.
+     *
+     * @param string $field
+     * @param mixed $compare
+     * @return DBQuery
+     */
+    public function notEquals(string $field, mixed $compare): DBQuery {
+        return $this->addCondition([
+            'type' => 'condition', 
+            'field' => $field, 
+            'compare' => $compare,
+            'operator' => self::COND_NON_EQUALITY
+        ]);
+    }
+
+    public function addJoin(array $config = [], $type = '', $alias = ''): DBQuery {
+        [
+            'table' => $table,
+            'field' => $field,
+            'table_pk' => $pk,
+            'goesTo' => $goesTo,
+            'goesFrom' => $goesFrom,
+            'rel_fields' => $relFields] = $config;
+
+        $this->joins[] = [
+            'relTable' => $table,
+            'relPk' => $field,
+            'tablePk' => $pk,
+            'goesTo' => $goesTo,
+            'goesFrom' => $goesFrom,
+            'type' => $type,
+            'alias' => $alias,
+            'fields' => $relFields,
+        ];
+        return $this;
+    }
+
+    public function setAliasesMap(array $aliasesMap) {
+        $transformed = [];
+        foreach ($aliasesMap as $key=>$value) {
+            $transformed[$value['table']] = $key;
+        }
+        $this->aliasesMap = $transformed;
+    }
+
     /**
      * Add like condition to the stack.
      *
@@ -504,6 +560,15 @@ abstract class DBQuery {
      */
     public function getConditions(): array {
         return $this->conditions;
+    }
+
+    public function order(string $field, bool $asc = true) {
+        $this->order[] = [$field, $asc];
+    }
+
+    public function limit(int $limit, int $offset = null) {
+        $this->limit = $limit;
+        $this->offset = $offset;
     }
 
     /**

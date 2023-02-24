@@ -16,11 +16,16 @@ class MySqlQuery extends DBQuery {
 	 * @return string
 	 */
 	public function getSelectQuery(): string {
-        $columns = $this->buildColumns(true);
+        $joins = $this->resolveJoins();
+        $joinColumns = count($this->joinColumns) > 0 ? ", " . implode(', ', $this->joinColumns) : "";
+        $columns = $this->buildColumns(true) . $joinColumns;
         $table = $this->getTable();
         $alias = $this->getAlias();
         $query = ["SELECT {$columns} FROM $table AS {$alias}"];
-        $query[] = $this->resolveConditions();    
+        $query[] = $joins;
+        $query[] = $this->resolveConditions(); 
+        $query[] = $this->resolveOrdering();
+        $query[] = $this->resolveLimit();
         $queryToExecute = implode(' ', $query);
         return $queryToExecute;
 	}
@@ -100,6 +105,7 @@ class MySqlQuery extends DBQuery {
 
         switch($operator) {
             case DBQuery::COND_EQUALITY: return "`{$field}` = '{$compare}'";
+            case DBQuery::COND_NON_EQUALITY: return "`{$field}` <> '{$compare}'";
             case DBQuery::COND_IS_NULL: return "`{$field}` IS NULL";
             case DBQuery::COND_IS_NOT_NULL: return "`{$field}` IS NOT NULL";
             case DBQuery::COND_LIKE: return $this->resolveLikeCondition($condition);
@@ -149,5 +155,57 @@ class MySqlQuery extends DBQuery {
         else if ($options === DBQuery::LIKE_BEGIN) $value = "{$compare}%";
         else if ($options === DBQuery::LIKE_END) $value = "%{$compare}";
         return "`{$field}`" . ($not? " NOT " : "") . " LIKE '{$value}'";
+    }
+
+    public function resolveOrdering(): string|null {
+        $output = [];
+        foreach($this->order as $item) {
+            [$field, $asc] = $item;
+            $ouput[] = $field . " " . ($asc ? "ASC" : "DESC");
+        }
+        if (count($output) > 0) {
+            return "ORDER BY " . implode(', ', $ouput);
+        }
+        return null;
+    }
+
+    public function resolveLimit(): string|null {
+        if (isset($this->limit) && !isset($this->offset)) {
+            return "LIMIT " . $this->limit;
+        } else if (isset($this->limit) && isset($this->offset)) {
+            return "LIMIT " . $this->limit . " OFFSET " . $this->offset;
+        }
+        return null;
+    }
+
+    public function resolveJoins(): string | null {
+        $output = [];
+        // $type = [
+        //     'left' => 'LEFT',
+        //     'right' => 'RIGHT',
+        // ];
+        foreach($this->joins as $join) {
+            [
+                'relTable' => $table,
+                'alias' => $alias,
+                'relPk' => $relPk,
+                'tablePk' => $tablePk,
+                'fields' => $fields,
+                'goesTo' => $goesTo,
+                'goesFrom' => $goesFrom
+            ] = array_merge(['goesTo' => null, 'fields' => [], 'goesFrom' => null], $join);
+
+            $targetAlias = !is_null($goesTo)? $goesTo : $alias;
+            $join = "LEFT JOIN {$table} AS {$alias} ON {$goesFrom}.{$relPk} = {$targetAlias}.{$tablePk}";
+            foreach ($this->aliasesMap as $table=>$tableAlias) {
+                $join = str_replace("$table.", "$tableAlias.", $join);
+            }
+            $output[] = $join;
+            $this->joinColumns = array_merge(
+                $this->joinColumns, 
+                array_map(fn ($field) => "{$alias}.{$field} as {$alias}__{$field}", $fields)
+            );
+        }
+        return implode(' ', $output);
     }
 }

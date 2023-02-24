@@ -1,9 +1,11 @@
 <?php
 
 namespace Alejodevop\YowlOrm;
+use Alejodevop\YowlOrm\Core\DBCache;
 use Alejodevop\YowlOrm\Core\DBDriver;
 use Alejodevop\YowlOrm\Core\DBQuery;
 use Alejodevop\YowlOrm\Core\IDBDriver;
+use Alejodevop\YowlOrm\Exceptions\DBTableNotFoundExeption;
 use Alejodevop\YowlOrm\Exceptions\InvalidDriverException;
 
 /**
@@ -15,6 +17,7 @@ use Alejodevop\YowlOrm\Exceptions\InvalidDriverException;
  */
 class DBManager implements IDBDriver {
     const MYSQL_DRIVER = 'MySql';
+    private $cacheDir = '';
     /**
      * List of the available drivers
      *
@@ -28,6 +31,10 @@ class DBManager implements IDBDriver {
      */
     private DBDriver $driver;
 
+    private DBCache $dbCache;
+
+    private array $schema = [];
+
     private function __construct(){
         $this->validDrivers = [
             DBManager::MYSQL_DRIVER,
@@ -39,15 +46,33 @@ class DBManager implements IDBDriver {
      *
      * @param string $driverName Should be one of the available drivers
      * @param array $config
-     * @return void
+     * @return DBManager
      */
-    public function loadDriver(string $driverName, array $config) {
+    public function loadDriver(string $driverName, array $config): DBManager {
         if (!in_array($driverName, $this->validDrivers))  {
             throw new InvalidDriverException("'$driverName' Is not a valid driver ");
         }
         $namespace = "\\Alejodevop\\YowlOrm\\Drivers\\{$driverName}\\{$driverName}Driver";
+        ['cache_dir' => $this->cacheDir] = array_merge(['cache_dir' => null], $config);
         $this->driver = new $namespace($config);
         $this->driver->init();
+        $this->dbCache = new DBCache($this->cacheDir);
+        return $this;
+    }
+
+    public function initCache($override = false) {
+        if (!$this->dbCache->checkGeneratedCache() || $override) {
+            $this->dbCache->generateCache();
+        }
+        $path = $this->cacheDir . DS . "database.php";
+        $this->schema = include_once($path);
+    }
+
+    public function getFromSchema($tableName) {
+        if (!key_exists($tableName, $this->schema)) {
+            throw new DBTableNotFoundExeption("Table {$tableName} not found in schema");
+        }
+        return $this->schema[$tableName];
     }
 
     /**
@@ -65,10 +90,11 @@ class DBManager implements IDBDriver {
      * Communicates with the database driver to execute a describe query.
      *
      * @param string $tableName
+     * @param bool $asArray
      * @return array
      */
-    public function describe(string $tableName): array {
-        return $this->driver->describe($tableName);
+    public function describe(string $tableName, bool $asArray): array {
+        return $this->driver->describe($tableName, $asArray);
     }
 
     /**
@@ -143,5 +169,17 @@ class DBManager implements IDBDriver {
      */
     public function delete(): bool {
         return $this->driver->delete();
+    }
+
+    public function getTables(): mixed {
+        return $this->driver->getTables();
+    }
+
+    public function getDatabaseName(): string {
+        return $this->driver->getDatabaseName();
+    }
+
+    public function lastInsertId(): mixed {
+        return $this->driver->lastInsertId();
     }
 }

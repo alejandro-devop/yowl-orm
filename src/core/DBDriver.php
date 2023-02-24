@@ -35,9 +35,9 @@ abstract class DBDriver implements IDBDriver {
      * Must be implemented to create a query
      *
      * @param array $fieldInfo
-     * @return DBField
+     * @return DBField|array
      */
-    public abstract function createField(array $fieldInfo): DBField;
+    public abstract function createField(array $fieldInfo, bool $asArray): DBField|array;
     /**
      * Validate if there is any query set.
      *
@@ -55,5 +55,9 @@ abstract class DBDriver implements IDBDriver {
      */
     protected function afterQuery() {
         $this->currentQuery = null;
+    }
+
+    public function getDatabaseName(): string {
+        return $this->connector->getDatabaseName();
     }
 }
