@@ -29,10 +29,14 @@ class MySqlTableCreator extends DBTableCreator {
     private function resolveField($field, $config = []) {
         $size = $config['size']?? null;
         $required = $config['required']?? null;
+        $unique = $config['unique']?? false;
         $fieldType = $this->resolveType($config['type'] ?? null) . (is_null($size) ? '' : "({$size})");
         $output = ["{$field} {$fieldType}"];
         if ($required) {
             $output[] = "NOT NULL";
+        }
+        if ($unique) {
+            $output[] = "UNIQUE";
         }
         return implode(' ', $output);
     }
@@ -44,6 +48,8 @@ class MySqlTableCreator extends DBTableCreator {
             case DBTableCreator::STRING_FIELD: return "VARCHAR";
             case DBTableCreator::TEXT_FIELD: return "TEXT";
             case DBTableCreator::DATE_FIELD: return "DATE";
+            case DBTableCreator::BIG_INT: return "BIGINT";
+            case DBTableCreator::TIMESTAMP_FIELD: return "TIMESTAMP";
             default: return "";
         }
     }
@@ -55,7 +61,7 @@ class MySqlTableCreator extends DBTableCreator {
         $fieldType = $this->resolveType($colConfig['type'] ?? null) . (is_null($size) ? '' : "({$size})");
         if ($type === DBTableCreator::STRING_FIELD) {
             return "{$col} {$fieldType} PRIMARY KEY NOT NULL";
-        } else if ($type === DBTableCreator::INT_FIELD) {
+        } else if ($type === DBTableCreator::INT_FIELD || $type === DBTableCreator::BIG_INT) {
             return "{$col} {$fieldType} UNSIGNED PRIMARY KEY " . ($autoIncrement? "AUTO_INCREMENT" : "") . " NOT NULL ";
         }
     }

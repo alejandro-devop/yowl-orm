@@ -176,6 +176,7 @@ class MysqlDriver extends DBDriver {
 
     public function createTable(DBTableCreator $dBTableCreator) : mixed {
         $sql = $dBTableCreator->getTableCreationQuery();
+        echo $sql . "\n";
         $result = $this->execQuery($sql);
         return $result;
     }

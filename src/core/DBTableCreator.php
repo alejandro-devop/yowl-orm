@@ -9,6 +9,11 @@ abstract class DBTableCreator {
     public const BOOL_FIELD = 'bool';
     public const TEXT_FIELD = 'text';
 
+    public const BIG_INT = 'big-int';
+    # 
+    public const DATETIME_FIELD = 'datetime';
+    public const TIMESTAMP_FIELD = 'time-stamp';
+
     protected $tableName;
     protected $columns = [];
     protected $pk;
@@ -31,6 +36,7 @@ abstract class DBTableCreator {
             'type' => self::STRING_FIELD,
             'default' => null,
             'autoIncrement' => false,
+            'unique' => true,
             'size' => null,
             'uuid' => false,
         ], $options);
@@ -95,11 +101,22 @@ abstract class DBTableCreator {
         return $this->tableName;
     }
 
+    public function pkBigInt($column): DBTableCreator {
+        $options = [
+            'type' => self::BIG_INT,
+            'autoIncrement' => true,
+            'size' => null
+        ];
+        $this->pk = $column;
+        return $this->addColumn($column, $options, true);
+    }
+
     public function pkCol($column, $uuid = false): DBTableCreator {
         $options = [
             'type' => $uuid? self::STRING_FIELD : self::INT_FIELD, 
             'autoIncrement' => !$uuid,
-            'uuid' => $uuid
+            'uuid' => $uuid,
+            'size' => $uuid? 255 : 11
         ];
         $this->pk = $column;
         return $this->addColumn($column, $options, true);
