@@ -38,6 +38,7 @@ abstract class DBDriver implements IDBDriver {
      * @return DBField|array
      */
     public abstract function createField(array $fieldInfo, bool $asArray): DBField|array;
+
     /**
      * Validate if there is any query set.
      *

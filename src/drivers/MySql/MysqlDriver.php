@@ -4,6 +4,7 @@ namespace Alejodevop\YowlOrm\Drivers\Mysql;
 use Alejodevop\YowlOrm\Core\DBDriver;
 use Alejodevop\YowlOrm\Core\DBField;
 use Alejodevop\YowlOrm\Core\DBQuery;
+use Alejodevop\YowlOrm\Core\DBTableCreator;
 
 /**
  * Mysql Driver, translates instructions and converts Query objects to mysql valid queries.
@@ -32,6 +33,20 @@ class MysqlDriver extends DBDriver {
             $fields[] = $this->createField($fieldInfo, $asArray);
         }
         return $fields;
+    }
+
+    public function tableExists($tableName): bool {
+        $dbName = $this->connector->getDatabaseName();
+        $sql = "SELECT COUNT(*) as matches FROM information_schema.tables " 
+        ."WHERE table_schema = '{$dbName}' AND table_name = '{$tableName}'";
+        $result = $this->query($sql);
+        if (count($result) > 0) {
+            $found = $result[0] ?? [];
+            return ($found['matches'] ?? 0) > 0;
+        } else {
+            return false;
+        }
+        
     }
 
     public function getTables(): mixed {
@@ -127,7 +142,7 @@ class MysqlDriver extends DBDriver {
 	public function select(): mixed {
         $this->beforeQuery();
         $queryToBeExecuted = $this->currentQuery->getSelectQuery();
-        echo "query: " . $queryToBeExecuted . "<br>";
+        // echo "query: " . $queryToBeExecuted . "<br>";
         $result = $this->query($queryToBeExecuted);
         return $result;
 	}
@@ -153,5 +168,15 @@ class MysqlDriver extends DBDriver {
 
     public function lastInsertId(): mixed {
         return $this->connector->lastInsertId();
+    }
+
+    public function getTableCreator(): DBTableCreator {
+        return new MySqlTableCreator();
+    }
+
+    public function createTable(DBTableCreator $dBTableCreator) : mixed {
+        $sql = $dBTableCreator->getTableCreationQuery();
+        $result = $this->execQuery($sql);
+        return $result;
     }
 }

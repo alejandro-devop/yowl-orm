@@ -19,6 +19,11 @@ class MySqlQuery extends DBQuery {
         $joins = $this->resolveJoins();
         $joinColumns = count($this->joinColumns) > 0 ? ", " . implode(', ', $this->joinColumns) : "";
         $columns = $this->buildColumns(true) . $joinColumns;
+
+        if (isset($this->max)) {
+            $columns = "MAX(" . $this->max . ") as " . $this->maxAlias;
+        }
+
         $table = $this->getTable();
         $alias = $this->getAlias();
         $query = ["SELECT {$columns} FROM $table AS {$alias}"];
@@ -180,10 +185,6 @@ class MySqlQuery extends DBQuery {
 
     public function resolveJoins(): string | null {
         $output = [];
-        // $type = [
-        //     'left' => 'LEFT',
-        //     'right' => 'RIGHT',
-        // ];
         foreach($this->joins as $join) {
             [
                 'relTable' => $table,

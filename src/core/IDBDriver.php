@@ -17,6 +17,7 @@ interface IDBDriver {
      * @return array
      */
     public function describe(string $tableName, bool $asArray): array;
+    public function tableExists(string $tableName): bool;
     /**
      * Must be implemented to executed queries which returns data.
      *
@@ -38,6 +39,9 @@ interface IDBDriver {
      * @return DBQuery
      */
     public function createQuery(): DBQuery;
+
+    public function getTableCreator(): DBTableCreator;
+    public function createTable(DBTableCreator $tableCreator): mixed;
 
     /**
      * Must be implemented to set the query to be executed.

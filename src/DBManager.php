@@ -4,6 +4,7 @@ namespace Alejodevop\YowlOrm;
 use Alejodevop\YowlOrm\Core\DBCache;
 use Alejodevop\YowlOrm\Core\DBDriver;
 use Alejodevop\YowlOrm\Core\DBQuery;
+use Alejodevop\YowlOrm\Core\DBTableCreator;
 use Alejodevop\YowlOrm\Core\IDBDriver;
 use Alejodevop\YowlOrm\Exceptions\DBTableNotFoundExeption;
 use Alejodevop\YowlOrm\Exceptions\InvalidDriverException;
@@ -66,6 +67,10 @@ class DBManager implements IDBDriver {
         }
         $path = $this->cacheDir . DS . "database.php";
         $this->schema = include_once($path);
+    }
+
+    public function updateCache() {
+        $this->initCache(true);
     }
 
     public function getFromSchema($tableName) {
@@ -181,5 +186,18 @@ class DBManager implements IDBDriver {
 
     public function lastInsertId(): mixed {
         return $this->driver->lastInsertId();
+    }
+
+    public function tableExists(string $tableName): bool {
+        return $this->driver->
+        tableExists($tableName);
+    }
+
+    public function getTableCreator(): DBTableCreator {
+        return $this->driver->getTableCreator();
+    }
+
+    public function createTable(DBTableCreator $tableCreator): mixed {
+        return $this->driver->createTable($tableCreator);
     }
 }

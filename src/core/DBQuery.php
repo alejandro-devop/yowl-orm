@@ -33,6 +33,8 @@ abstract class DBQuery {
      * @var string
      */
     protected string $connector = 'AND';
+    protected string $max;
+    protected string $maxAlias;
     /**
      * Columns to be used by the current query.
      *
@@ -503,6 +505,11 @@ abstract class DBQuery {
             $this->columnNames)
         );
         return $columns;
+    }
+
+    public function max($max, $alias) {
+        $this->max = $max;
+        $this->maxAlias = $alias;
     }
     /**
      * Builds the values structure to be used in the current query (In most databases is the same)
