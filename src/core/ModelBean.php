@@ -261,6 +261,18 @@ abstract class ModelBean implements ISelectable {
         return DBManager::getInstance()->insert();
     }
 
+    	/**
+	 * @return bool
+	 */
+	public function delete(): bool {
+        $query = DBManager::getInstance()->createQuery();
+        $query->setTable($this->table)
+            ->setColumnNames([$this->pk])
+            ->setValues([$this->pkValue]);
+        DBManager::getInstance()->setQuery($query);
+        return DBManager::getInstance()->delete();
+	}
+
     /**
 	 * @return bool
 	 */
@@ -370,13 +382,6 @@ abstract class ModelBean implements ISelectable {
 	 */
 	public function getList(string $key, string $value): array {
         return null;
-	}
-	
-	/**
-	 * @return bool
-	 */
-	public function deleteRecord(): bool {
-        return false;
 	}
 
     public function __debugInfo() {

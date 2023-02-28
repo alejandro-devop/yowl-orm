@@ -511,15 +511,22 @@ abstract class DBQuery {
         $this->max = $max;
         $this->maxAlias = $alias;
     }
+    public function resolveValue($value) {
+        if (gettype($value) === 'boolean') {
+            return $value? "1" : "0";
+        }
+        return is_null($value)? "NULL" : "'{$value}'";
+    }
     /**
      * Builds the values structure to be used in the current query (In most databases is the same)
      *
      * @return string
      */
     public function buildValues(): string {
+        # is_null($value)? "NULL" : "'{$value}'"
         $values = implode(', ', 
             array_map(
-                fn ($value) => is_null($value)? "NULL" : "'{$value}'", 
+                fn ($value) => $this->resolveValue($value), 
                 $this->values
             )
         );

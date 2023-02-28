@@ -12,7 +12,7 @@ interface ISelectable {
     public function insert(): bool;
     public function insertRecord(): bool;
     public function update(): bool;
-    public function deleteRecord(): bool;
+    public function delete(): bool;
     public function equals(string $field, mixed $compare): Model;
     public function notEquals(string $field, mixed $compare): Model;
     public function greater(string $field, mixed $compare): Model;
