@@ -143,6 +143,7 @@ class MysqlDriver extends DBDriver {
         $this->beforeQuery();
         $queryToBeExecuted = $this->currentQuery->getSelectQuery();
         // echo "query: " . $queryToBeExecuted . "<br>";
+        // exit();
         $result = $this->query($queryToBeExecuted);
         return $result;
 	}
