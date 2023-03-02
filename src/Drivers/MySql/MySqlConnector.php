@@ -1,6 +1,6 @@
 <?php
 
-namespace Alejodevop\YowlOrm\Drivers\Mysql;
+namespace Alejodevop\YowlOrm\Drivers\MySql;
 use Alejodevop\YowlOrm\Core\DBConnector;
 use Alejodevop\YowlOrm\Exceptions\DBConnectionException;
 

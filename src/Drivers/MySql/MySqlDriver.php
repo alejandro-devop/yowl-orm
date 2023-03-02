@@ -1,6 +1,7 @@
 <?php
 
-namespace Alejodevop\YowlOrm\Drivers\Mysql;
+namespace Alejodevop\YowlOrm\Drivers\MySql;
+
 use Alejodevop\YowlOrm\Core\DBDriver;
 use Alejodevop\YowlOrm\Core\DBField;
 use Alejodevop\YowlOrm\Core\DBQuery;
