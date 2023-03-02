@@ -12,7 +12,7 @@ use Alejodevop\YowlOrm\Core\DBTableCreator;
  * @version 1.0.0
  * @since 1.0.0
  */
-class MysqlDriver extends DBDriver {
+class MySqlDriver extends DBDriver {
     public function init() {
         $this->connector = new MysqlConnector($this->configuration);
         $this->connector->connect();

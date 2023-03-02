@@ -7,7 +7,7 @@ use Alejodevop\YowlOrm\Exceptions\DBConnectionException;
 /**
  * Class to handle the mysql connection
  */
-class MysqlConnector extends DBConnector {
+class MySqlConnector extends DBConnector {
     
 	/**
      * Connects to the mysql server.
